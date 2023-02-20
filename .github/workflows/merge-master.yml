@@ -51,6 +51,12 @@ jobs:
         with:
           version-type: ${{ github.event.inputs.bump_type }}
           push: false
+
+      - name: Get all commits for next branch
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: next
     
       - name: git
         run: |
