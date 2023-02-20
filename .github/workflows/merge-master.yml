@@ -1,0 +1,80 @@
+name: Merge next into master with fetch-depth as 0
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'Describe the type of version bump needed, default is patch'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  bump_and_merge:
+    name: 'Bump Version on master'
+    environment: 'test'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout master branch code'
+        uses: 'actions/checkout@v3'
+        with:
+          ref: master
+
+      - name: 'Echo outputs from checkout step'
+        run: echo "MASTER_REF=$(/usr/bin/git log -1 --format='%H')" >> $GITHUB_ENV
+
+      - name: 'Checkout next branch code'
+        uses: 'actions/checkout@v3'
+
+      - name: 'Echo outputs from checkout step'
+        run: echo "BASE_REF=$(/usr/bin/git log -1 --format='%H')" >> $GITHUB_ENV
+
+      - name: 'Echo compare ref results'
+        env:
+          COMMIT_DIFF: ${{ env.MASTER_REF != env.BASE_REF }}
+        run: echo "COMMIT_DIFF=$COMMIT_DIFF" >> $GITHUB_ENV
+
+      - name: 'Echo value'
+        run: echo ${{ env.COMMIT_DIFF }}
+
+      - name:  'Automated Version Bump'
+        if: env.MASTER_REF != env.BASE_REF
+        id: version-bump
+        uses:  'phips28/gh-action-bump-version@master'
+        with:
+          version-type: ${{ github.event.inputs.bump_type }}
+
+      - name: Merge next -> master
+        if: env.MASTER_REF != env.BASE_REF
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: next
+          target_branch: master
+          message: Merge next into master
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout master branch to start with fast forward merge
+        if: env.MASTER_REF != env.BASE_REF
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: master
+
+      - name: Merge Fast Forward
+        if: env.MASTER_REF != env.BASE_REF
+        uses: MaximeHeckel/github-action-merge-fast-forward@v1.1.0
+        with:
+          # Branch to merge
+          branchtomerge: master
+          # Branch that will be updated
+          branch: next
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
