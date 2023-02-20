@@ -50,31 +50,42 @@ jobs:
         uses:  'phips28/gh-action-bump-version@master'
         with:
           version-type: ${{ github.event.inputs.bump_type }}
+          push: false
+    
+      - name: git
+        run: |
+          # setup the username and email. I tend to use 'GitHub Actions Bot' with no email by default
+          git --version
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          git status
+          git tag
+          git describe
 
-      - name: Merge next -> main
-        if: env.MASTER_REF != env.BASE_REF
-        uses: devmasx/merge-branch@master
-        with:
-          type: now
-          from_branch: next
-          target_branch: main
-          message: Merge next into main
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+#       - name: Merge next -> main
+#         if: env.MASTER_REF != env.BASE_REF
+#         uses: devmasx/merge-branch@master
+#         with:
+#           type: now
+#           from_branch: next
+#           target_branch: main
+#           message: Merge next into main
+#           github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Checkout master branch to start with fast forward merge
-        if: env.MASTER_REF != env.BASE_REF
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          ref: main
+#       - name: Checkout master branch to start with fast forward merge
+#         if: env.MASTER_REF != env.BASE_REF
+#         uses: actions/checkout@v3
+#         with:
+#           fetch-depth: 0
+#           ref: main
 
-      - name: Merge Fast Forward
-        if: env.MASTER_REF != env.BASE_REF
-        uses: MaximeHeckel/github-action-merge-fast-forward@v1.1.0
-        with:
-          # Branch to merge
-          branchtomerge: main
-          # Branch that will be updated
-          branch: next
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#       - name: Merge Fast Forward
+#         if: env.MASTER_REF != env.BASE_REF
+#         uses: MaximeHeckel/github-action-merge-fast-forward@v1.1.0
+#         with:
+#           # Branch to merge
+#           branchtomerge: main
+#           # Branch that will be updated
+#           branch: next
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
