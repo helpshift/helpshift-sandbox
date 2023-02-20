@@ -59,8 +59,7 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
           git status
-          git tag
-          git describe
+          echo "$(git log -1 next)"
 
 #       - name: Merge next -> main
 #         if: env.MASTER_REF != env.BASE_REF
